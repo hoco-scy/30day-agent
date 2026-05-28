@@ -1,0 +1,399 @@
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.plan { padding: 1rem 0; }
+.week-block { margin-bottom: 2rem; }
+.week-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 1rem;
+}
+.week-badge {
+  font-size: 11px; font-weight: 500; padding: 3px 10px;
+  border-radius: 20px; white-space: nowrap;
+}
+.week-title { font-size: 16px; font-weight: 500; color: var(--color-text-primary); }
+.week-sub { font-size: 13px; color: var(--color-text-secondary); margin-left: auto; }
+.days-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.day-card {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.day-card:hover { border-color: var(--color-border-secondary); }
+.day-label { font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 4px; }
+.day-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 6px; line-height: 1.4; }
+.day-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.tag {
+  font-size: 11px; padding: 2px 7px;
+  border-radius: 10px;
+}
+.detail-panel {
+  background: var(--color-background-secondary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  padding: 16px 18px;
+  margin-top: 12px;
+  display: none;
+}
+.detail-panel.open { display: block; }
+.detail-title { font-size: 14px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 10px; }
+.detail-section { margin-bottom: 10px; }
+.detail-section-label { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
+.detail-items { list-style: none; }
+.detail-items li { font-size: 13px; color: var(--color-text-primary); line-height: 1.6; padding-left: 14px; position: relative; }
+.detail-items li::before { content: "·"; position: absolute; left: 4px; color: var(--color-text-tertiary); }
+.milestone {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  padding: 12px 16px;
+  margin-top: 10px;
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.milestone-icon { font-size: 18px; color: var(--color-text-secondary); flex-shrink: 0; margin-top: 1px; }
+.milestone-text { font-size: 13px; color: var(--color-text-primary); line-height: 1.5; }
+.milestone-text strong { font-weight: 500; }
+.close-btn { font-size: 12px; color: var(--color-text-tertiary); cursor: pointer; float: right; }
+.close-btn:hover { color: var(--color-text-secondary); }
+.md-detail-btn {
+  display: inline-block; margin-top: 8px; font-size: 12px;
+  color: var(--color-text-secondary); cursor: pointer;
+  padding: 4px 10px; border-radius: 6px;
+  border: 0.5px solid var(--color-border-tertiary);
+  background: var(--color-background-primary);
+  transition: all 0.15s;
+}
+.md-detail-btn:hover { border-color: var(--color-border-secondary); color: var(--color-text-primary); }
+.md-panel {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  padding: 20px 24px; margin-top: 12px;
+  display: none; max-height: 70vh; overflow-y: auto;
+  line-height: 1.7; font-size: 14px; color: var(--color-text-primary);
+}
+.md-panel.open { display: block; }
+.md-panel h2 { font-size: 18px; font-weight: 600; margin: 24px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--color-border-tertiary); }
+.md-panel h3 { font-size: 15px; font-weight: 600; margin: 20px 0 8px; color: var(--color-text-primary); }
+.md-panel h4 { font-size: 14px; font-weight: 500; margin: 14px 0 6px; color: var(--color-text-secondary); }
+.md-panel p { margin: 6px 0; }
+.md-panel ul, .md-panel ol { padding-left: 20px; margin: 6px 0; }
+.md-panel li { margin: 3px 0; }
+.md-panel code { font-family: var(--font-mono); font-size: 12px; background: var(--color-background-secondary); padding: 1px 5px; border-radius: 4px; }
+.md-panel pre { background: var(--color-background-secondary); border-radius: 8px; padding: 12px 16px; overflow-x: auto; margin: 8px 0; }
+.md-panel pre code { background: none; padding: 0; font-size: 13px; }
+.md-panel blockquote { border-left: 3px solid var(--color-border-secondary); padding: 8px 12px; margin: 8px 0; background: var(--color-background-secondary); border-radius: 0 8px 8px 0; }
+.md-panel hr { border: none; border-top: 1px solid var(--color-border-tertiary); margin: 16px 0; }
+.md-panel strong { font-weight: 600; }
+</style>
+
+<div class="plan">
+
+<div class="week-block">
+  <div class="week-header">
+    <span class="week-badge" style="background:#E1F5EE;color:#0F6E56;">Week 1</span>
+    <span class="week-title">从LangChain升级到工业级Agent</span>
+    <span class="week-sub">Day 1–7</span>
+  </div>
+  <div class="days-grid" id="w1"></div>
+  <div class="detail-panel" id="detail-w1"></div>
+  <div class="md-panel" id="md-w1"></div>
+  <div class="milestone">
+    <i class="ti ti-flag milestone-icon" aria-hidden="true"></i>
+    <span class="milestone-text"><strong>周末里程碑：</strong>手写一个含状态流转的命令行Agent，支持工具调用失败后自动重试，能跑通"思考→调用→检查→纠错"完整闭环</span>
+  </div>
+</div>
+
+<div class="week-block">
+  <div class="week-header">
+    <span class="week-badge" style="background:#E6F1FB;color:#185FA5;">Week 2</span>
+    <span class="week-title">高级RAG + 底层原理护城河</span>
+    <span class="week-sub">Day 8–14</span>
+  </div>
+  <div class="days-grid" id="w2"></div>
+  <div class="detail-panel" id="detail-w2"></div>
+  <div class="md-panel" id="md-w2"></div>
+  <div class="milestone">
+    <i class="ti ti-flag milestone-icon" aria-hidden="true"></i>
+    <span class="milestone-text"><strong>周末里程碑：</strong>搭出带Rerank的本地知识库系统，且能口述PagedAttention原理与KV Cache空间计算公式（面试加分项）</span>
+  </div>
+</div>
+
+<div class="week-block">
+  <div class="week-header">
+    <span class="week-badge" style="background:#FAEEDA;color:#854F0B;">Week 3</span>
+    <span class="week-title">核心项目：硬核Coding Agent</span>
+    <span class="week-sub">Day 15–21</span>
+  </div>
+  <div class="days-grid" id="w3"></div>
+  <div class="detail-panel" id="detail-w3"></div>
+  <div class="md-panel" id="md-w3"></div>
+  <div class="milestone">
+    <i class="ti ti-flag milestone-icon" aria-hidden="true"></i>
+    <span class="milestone-text"><strong>周末里程碑：</strong>项目核心功能跑通，能演示"接收任务→分解→执行→反思修正"完整链路，准备好架构图和README</span>
+  </div>
+</div>
+
+<div class="week-block">
+  <div class="week-header">
+    <span class="week-badge" style="background:#FAECE7;color:#993C1D;">Week 4</span>
+    <span class="week-title">微调实操 + 简历包装 + 海投</span>
+    <span class="week-sub">Day 22–30</span>
+  </div>
+  <div class="days-grid" id="w4"></div>
+  <div class="detail-panel" id="detail-w4"></div>
+  <div class="md-panel" id="md-w4"></div>
+  <div class="milestone">
+    <i class="ti ti-flag milestone-icon" aria-hidden="true"></i>
+    <span class="milestone-text"><strong>月末里程碑：</strong>GitHub有1个完整Agent项目，简历用"算法化语言"重写，已投递10+岗位，准备好核心面试问题的回答框架</span>
+  </div>
+</div>
+
+</div>
+
+<script>
+// Markdown loading and rendering
+let mdContent = '';
+let mdSections = {};
+
+async function loadMarkdown() {
+  try {
+    const resp = await fetch('learning_plan_detail.md');
+    if (!resp.ok) return;
+    mdContent = await resp.text();
+    // Split by Week headers (## Week X)
+    const weekRegex = /## (Week \d+[^#]*)/g;
+    let match;
+    const parts = [];
+    while ((match = weekRegex.exec(mdContent)) !== null) {
+      parts.push({ title: match[1].trim(), index: match.index });
+    }
+    for (let i = 0; i < parts.length; i++) {
+      const start = parts[i].index;
+      const end = i + 1 < parts.length ? parts[i + 1].index : mdContent.length;
+      const key = 'w' + (i + 1);
+      mdSections[key] = mdContent.substring(start, end).trim();
+    }
+  } catch (e) { /* file not found or CORS */ }
+}
+loadMarkdown();
+
+function toggleMdPanel(weekId) {
+  const panel = document.getElementById('md-' + weekId);
+  if (!panel) return;
+  if (panel.classList.contains('open')) {
+    panel.classList.remove('open');
+    panel.innerHTML = '';
+    return;
+  }
+  const md = mdSections[weekId];
+  if (!md) {
+    panel.innerHTML = '<p style="color:var(--color-text-tertiary);">暂无详细学习内容</p>';
+    panel.classList.add('open');
+    return;
+  }
+  panel.innerHTML = '<span class="close-btn" onclick="this.parentElement.classList.remove(\'open\');this.parentElement.innerHTML=\'\'">关闭 ×</span>' + marked.parse(md);
+  panel.classList.add('open');
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+const weeks = {
+  w1: [
+    {
+      day: "Day 1–2", title: "LangGraph 状态机深入",
+      tags: [["工程核心","#E1F5EE","#0F6E56"],["必须掌握","#FAEEDA","#854F0B"]],
+      learn: ["理解StateGraph与传统Chain的本质区别：有向图vs链式调用","掌握Node、Edge、State在图中如何传递","条件边（Conditional Edge）：根据LLM输出动态路由","人工干预节点（Human-in-the-loop）设计"],
+      do: ["把你用LangChain写过的任意Agent迁移到LangGraph重写","实现：调用失败→自动重试→超过3次→报错退出 的条件流"],
+      tip: "你有LangChain基础，迁移成本很低。重点感受StateGraph在处理复杂分支时比Chain清晰多少。"
+    },
+    {
+      day: "Day 3", title: "Tool Calling 鲁棒性",
+      tags: [["高频面试点","#FAECE7","#993C1D"]],
+      learn: ["用Pydantic定义严格的JSON Schema约束输出格式","结构化输出（Structured Output）的几种方案对比","工具调用超时/格式错误时的优雅降级策略"],
+      do: ["写一个中间件：自动解析Tool Call结果，格式错误时触发重新生成，最多重试2次","实现文件读取、shell执行、Python运行 三个基础工具"],
+      tip: "这是Agent面试必考点。面试官最喜欢问：'你的Agent调工具失败了怎么办？'"
+    },
+    {
+      day: "Day 4", title: "MCP 协议入门",
+      tags: [["前沿技术","#E6F1FB","#185FA5"],["加分项","#E1F5EE","#0F6E56"]],
+      learn: ["MCP是什么：Anthropic推出的Agent工具协议标准","Client/Server架构，Tool的定义与注册","和LangChain Tool的区别与联系"],
+      do: ["跑通官方filesystem MCP示例","尝试接入一个git MCP server，让Agent能读取代码仓库信息"],
+      tip: "MCP正在成为大厂Agent基础设施的标准协议，写在简历上很加分。1天入门足够。"
+    },
+    {
+      day: "Day 5–6", title: "Context与Memory管理",
+      tags: [["核心工程","#E1F5EE","#0F6E56"]],
+      learn: ["Context Window的硬限制与'Lost in the Middle'现象","Memory的几种方案：摘要压缩、向量存储、滑动窗口","Multi-turn对话的状态持久化设计"],
+      do: ["给你Week1的Agent加入Memory模块：对话超过N轮时自动压缩历史","设计一个Prompt：让Agent每次思考时先回顾关键历史信息"],
+      tip: "很多人做Agent只管当前轮，完全不考虑长对话退化。加上Memory设计，简历立刻高一档。"
+    },
+    {
+      day: "Day 7", title: "整合与复盘",
+      tags: [["动手输出","#FAEEDA","#854F0B"]],
+      learn: ["回顾本周：StateGraph、Tool Calling、MCP、Memory的组合用法","思考：你的Agent在哪些场景下会彻底失败？"],
+      do: ["整合本周所有组件，跑通一个完整的多工具Agent","在GitHub建好项目仓库，写好基础README"],
+      tip: "今天不要学新东西。把本周写的代码整理好，这是你简历项目的地基。"
+    }
+  ],
+  w2: [
+    {
+      day: "Day 8–9", title: "高级RAG架构",
+      tags: [["工程核心","#E6F1FB","#185FA5"],["超越基础","#E1F5EE","#0F6E56"]],
+      learn: ["Chunking策略：为什么固定分块会出问题，Sentence-level分块的优势","Parent-Child Chunking：检索小块、返回大块，解决上下文截断","Sentence Window Retrieval：检索一句，返回前后N句"],
+      do: ["用LlamaIndex实现一个带Parent-Child分块的本地知识库","对比：普通分块 vs Parent-Child，在长文档问答上的效果差异"],
+      tip: "面试问'你怎么做RAG'时，大多数人只说向量检索。你能说出分块策略的取舍，直接拉开差距。"
+    },
+    {
+      day: "Day 10–11", title: "Rerank与混合检索",
+      tags: [["算法深度","#FAECE7","#993C1D"],["高分回答","#FAEEDA","#854F0B"]],
+      learn: ["Bi-Encoder（向量检索）vs Cross-Encoder（Rerank）的本质区别","BM25稀疏检索 + 向量稠密检索的Hybrid方案","为什么Rerank能显著提高召回精度：精排的原理"],
+      do: ["集成BGE-Reranker到你的RAG系统，实现Two-Stage检索","测试：10个问题，对比加Rerank前后的答案质量"],
+      tip: "Rerank是RAG提质最有效的单点优化。跑通过一次，面试就能说出真实的效果数字。"
+    },
+    {
+      day: "Day 12", title: "vLLM推理加速原理",
+      tags: [["算法护城河","#FAECE7","#993C1D"],["背诵重点","#E1F5EE","#0F6E56"]],
+      learn: ["KV Cache是什么，为什么Transformer推理是Memory-bound而非Compute-bound","PagedAttention：借鉴OS虚拟内存分页思想，解决KV Cache碎片","Continuous Batching：如何动态插入新请求提升吞吐量","KV Cache空间计算公式：2 × layers × heads × head_dim × seq_len × dtype_bytes"],
+      do: ["在本地用vLLM启动一个小模型（如Qwen-1.5B），观察并发吞吐变化","能在纸上写出KV Cache的空间计算过程"],
+      tip: "你不需要会写vLLM源码。但面试官问原理时，你能讲出'分页'类比OS的底层逻辑，含金量极高。"
+    },
+    {
+      day: "Day 13", title: "Ollama + 本地模型部署",
+      tags: [["动手实操","#E1F5EE","#0F6E56"]],
+      learn: ["GGUF量化格式：Q4_K_M、Q8等量化级别的精度/速度权衡","Ollama的模型管理与本地API","量化的基本思路：将FP16权重压缩为INT4/INT8"],
+      do: ["用Ollama在本地跑Qwen2.5-7B或LLaMA3-8B","把你的RAG系统的LLM部分替换成本地Ollama模型，跑通端到端"],
+      tip: "本地部署能力在面试中证明你'真的动手做过'，不只是API调用者。"
+    },
+    {
+      day: "Day 14", title: "Week 2 整合",
+      tags: [["动手输出","#FAEEDA","#854F0B"]],
+      learn: ["RAG系统的评测方案：用什么指标衡量检索质量（Recall@K、MRR）","把本周知识点串联：检索→重排→生成 的完整流程"],
+      do: ["完成一个完整的RAG系统：支持Parent-Child分块、向量+BM25混合检索、Rerank、本地模型生成","用10个测试问题跑一遍，记录结果，写进README"],
+      tip: "今天的产出就是你简历项目二。哪怕还不完善，有量化结果就比'搭了个RAG聊天框'高一个量级。"
+    }
+  ],
+  w3: [
+    {
+      day: "Day 15–16", title: "Coding Agent 架构设计",
+      tags: [["核心项目","#FAEEDA","#854F0B"],["简历主角","#FAECE7","#993C1D"]],
+      learn: ["Planner-Executor-Reviewer 三角架构：各节点的职责划分","为什么Coding Agent不能只有一个Agent：任务分解的必要性","工具集设计：file_read、file_edit、shell_exec、code_run 的接口规范"],
+      do: ["用LangGraph设计状态机：Planner节点分解任务→Executor节点调工具→Reviewer节点检查结果","把状态机的图（用mermaid或手绘）画出来，这就是你以后面试讲的架构图"],
+      tip: "先画图再写代码。架构清晰了，代码自然不乱。"
+    },
+    {
+      day: "Day 17", title: "文件编辑与Diff实现",
+      tags: [["技术亮点","#FAECE7","#993C1D"],["区别于普通项目","#E6F1FB","#185FA5"]],
+      learn: ["为什么不能直接让模型输出完整文件：token浪费与错误率","Diff/Patch格式：unified diff的结构，如何精准定位修改位置","Search-Replace方案：模型只输出'找到这段，替换成这段'"],
+      do: ["实现一个file_edit工具：接收search/replace对，精准修改文件，失败时返回错误信息","测试：让Agent修改一个Python函数的实现，验证diff应用是否准确"],
+      tip: "这是Claude Code、Cursor等Coding Agent的核心技术点。你实现过，面试时就能聊得很深。"
+    },
+    {
+      day: "Day 18", title: "Sandbox执行隔离",
+      tags: [["工程深度","#E6F1FB","#185FA5"]],
+      learn: ["为什么需要Sandbox：Agent生成的代码可能执行危险操作","subprocess的超时控制、输出捕获、错误处理","简单隔离方案：限制执行时间、禁止特定系统调用"],
+      do: ["实现一个安全的code_runner工具：支持超时、输出截断、错误捕获","让Agent能运行生成的代码并把stdout/stderr返回给自己"],
+      tip: "不需要上Docker。用subprocess加好限制，面试说'考虑了安全隔离'就够了。"
+    },
+    {
+      day: "Day 19–20", title: "Reflection与自我修正",
+      tags: [["核心能力","#FAEEDA","#854F0B"],["面试亮点","#FAECE7","#993C1D"]],
+      learn: ["Reflection机制：Agent执行后如何评估自己输出的质量","错误分类：语法错误、逻辑错误、测试未通过——各自如何触发不同的修正路径","重试次数上限与退出条件：防止无限循环"],
+      do: ["在Reviewer节点加入：运行测试用例→失败→把错误信息喂给Planner重新规划","测试：给一个有bug的需求，观察Agent能否自己发现并修复"],
+      tip: "这是区别于普通Agent项目最核心的功能。能自我修正的Agent，才是真正的Agent。"
+    },
+    {
+      day: "Day 21", title: "项目收尾与基础UI",
+      tags: [["展示用","#E1F5EE","#0F6E56"]],
+      learn: ["FastAPI的基本路由：把Agent包装成HTTP服务","最小化前端：用Streamlit做个输入框+输出展示就够了"],
+      do: ["用FastAPI暴露一个/run接口，输入任务描述，输出执行日志","写好项目README：背景、架构图、Quick Start、Demo截图","录一个10秒的GIF演示主流程"],
+      tip: "UI不用做好看，能跑就行。面试官看的是架构和逻辑，不是前端。"
+    }
+  ],
+  w4: [
+    {
+      day: "Day 22–24", title: "LoRA微调实操",
+      tags: [["算法护城河","#FAECE7","#993C1D"],["租卡实操","#FAEEDA","#854F0B"]],
+      learn: ["LoRA原理：W = W₀ + B·A，为什么低秩矩阵能有效拟合","Rank和Alpha的含义：Rank控制表达能力，Alpha控制学习率缩放","SFT时的Loss Mask：为什么只对Target部分计算Loss，Input部分如何处理"],
+      do: ["在AutoDL租一张RTX 4090（约10-15元/天）","用LLaMA-Factory跑通Qwen2.5-7B的LoRA微调，数据集用你项目中工具调用的bad case","跑完后对比微调前后Tool Calling的格式准确率"],
+      tip: "哪怕只跑通一次，面试时就能说：'我在4090上微调过Qwen2.5-7B，用了200条bad case数据，LoRA rank=16，工具调用准确率提升了X%。'这和没跑过完全不是一个层次。"
+    },
+    {
+      day: "Day 25–26", title: "面试八股突击",
+      tags: [["面试必备","#FAECE7","#993C1D"]],
+      learn: ["Transformer核心：Pre-LN vs Post-LN对训练稳定性的影响","RoPE旋转位置编码：为什么比绝对位置编码更适合长文本","MoE路由机制：Top-K Routing、负载均衡Loss的作用","RLHF vs DPO的基本区别"],
+      do: ["找GitHub上'大模型面试题'相关仓库，把上面4个知识点能流畅口述","手推Multi-Head Attention的矩阵维度变化（输入→Q/K/V→Attention分数→输出）"],
+      tip: "你懂Attention原理，这部分不是从零学，是把已知的东西转化成面试语言。"
+    },
+    {
+      day: "Day 27", title: "简历算法化改写",
+      tags: [["关键操作","#FAEEDA","#854F0B"]],
+      learn: ["如何把工程经历写出算法视角：不说'用了LangGraph'，说'基于状态机设计了反思修正闭环'","量化结果的重要性：Tool Calling准确率从X%→Y%，延迟降低Z%"],
+      do: ["把Coding Agent项目的简历描述改成算法化语言","核心技能区加入：LangGraph多智能体编排、LoRA轻量化微调、vLLM推理优化、RAG检索重排"],
+      tip: "同一个项目，工程视角写是60分，算法视角写是85分。你这一天的时间ROI极高。"
+    },
+    {
+      day: "Day 28–30", title: "海投与模拟面试",
+      tags: [["执行","#E1F5EE","#0F6E56"]],
+      learn: ["目标岗位：大模型应用工程师、AI Agent研发、LLM工程师、AI平台工程师","投递策略：北航学历先砸大厂实习直通车，同时投独角兽（智谱、月之暗面、阶跃星辰等）"],
+      do: ["整理10个必须准备的面试问题并写好回答框架（Tool Calling失败怎么处理、RAG效果差怎么优化、KV Cache怎么计算等）","投递不少于15个岗位","找人做一次模拟面试，或者自己对着录像练"],
+      tip: "简历投出去后不要停。继续完善项目，继续刷八股。第一个面试邀约可能比你想象的来得快。"
+    }
+  ]
+};
+
+function renderWeek(weekId, days) {
+  const grid = document.getElementById(weekId);
+  const panel = document.getElementById('detail-' + weekId);
+  let activeIdx = null;
+
+  days.forEach((d, i) => {
+    const card = document.createElement('div');
+    card.className = 'day-card';
+    card.innerHTML = `
+      <div class="day-label">${d.day}</div>
+      <div class="day-title">${d.title}</div>
+      <div class="day-tags">${d.tags.map(([t,bg,c]) => `<span class="tag" style="background:${bg};color:${c};">${t}</span>`).join('')}</div>
+    `;
+    card.addEventListener('click', () => {
+      if (activeIdx === i) {
+        panel.classList.remove('open');
+        panel.innerHTML = '';
+        activeIdx = null;
+        return;
+      }
+      activeIdx = i;
+      panel.classList.add('open');
+      panel.innerHTML = `
+        <span class="close-btn" onclick="this.parentElement.classList.remove('open');this.parentElement.innerHTML=''">关闭 ×</span>
+        <div class="detail-title">${d.day}：${d.title}</div>
+        <div class="detail-section">
+          <div class="detail-section-label">学习内容</div>
+          <ul class="detail-items">${d.learn.map(l=>`<li>${l}</li>`).join('')}</ul>
+        </div>
+        <div class="detail-section">
+          <div class="detail-section-label">动手任务</div>
+          <ul class="detail-items">${d.do.map(l=>`<li>${l}</li>`).join('')}</ul>
+        </div>
+        <div class="detail-section">
+          <div class="detail-section-label" style="color:var(--color-text-warning)">给你的提示</div>
+          <ul class="detail-items"><li>${d.tip}</li></ul>
+        </div>
+        <div style="text-align:right;">
+          <span class="md-detail-btn" onclick="event.stopPropagation();toggleMdPanel('${weekId}')">📖 查看完整学习内容</span>
+        </div>
+      `;
+    });
+    grid.appendChild(card);
+  });
+}
+
+renderWeek('w1', weeks.w1);
+renderWeek('w2', weeks.w2);
+renderWeek('w3', weeks.w3);
+renderWeek('w4', weeks.w4);
+</script>
