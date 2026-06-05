@@ -1,0 +1,3 @@
+[submodule "LangCode"]
+	path = LangCode
+	url = https://github.com/hoco-scy/LangCode.git
