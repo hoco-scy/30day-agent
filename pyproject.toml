@@ -12,6 +12,7 @@ dependencies = [
     "langchain-openrouter>=0.2.3",
     "langgraph>=1.2.2",
     "pydantic>=2.13.4",
+    "psutil>=5.9.0",
 ]
 
 [tool.uv.workspace]
